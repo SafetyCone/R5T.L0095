@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using R5T.L0091.T000;
 using R5T.L0092.T001;
 using R5T.L0095.T000;
+using R5T.T0221;
 using R5T.T0241;
 
 
@@ -13,7 +14,22 @@ namespace R5T.L0095.O002
     public partial interface ISolutionFileContextOperations : IContextOperationsMarker
     {
         public Func<TContext, Task> Create_SolutionFile<TContext>(
-            IChecked<IFileDoesNotExist> solutionfileDoesNotExist, 
+            IChecked<IFileDoesNotExist> checkedSolutionfileDoesNotExist, 
+            out IChecked<IFileExists> checkedSolutionfileExists)
+            where TContext : IHasSolutionFilePath
+        {
+            checkedSolutionfileExists = Checked.Check<IFileExists>();
+
+            return context =>
+            {
+                return Instances.SolutionFileGenerator.New(
+                    context.SolutionFilePath);
+            };
+        }
+
+        public Func<TContext, Task> Create_SolutionFile<TContext>(
+            IsSet<IHasSolutionFilePath> solutionFilePathSet,
+            IChecked<IFileDoesNotExist> solutionfileDoesNotExist,
             out IChecked<IFileExists> solutionfileExists)
             where TContext : IHasSolutionFilePath
         {

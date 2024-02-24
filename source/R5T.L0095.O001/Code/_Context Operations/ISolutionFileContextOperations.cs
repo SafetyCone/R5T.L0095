@@ -14,18 +14,45 @@ namespace R5T.L0095.O001
     [ContextOperationsMarker]
     public partial interface ISolutionFileContextOperations : IContextOperationsMarker
     {
+        public Func<TContext, Task> Set_SolutionDirectoryPath<TContext>(
+            string solutionDirectoryPath,
+            out IsSet<IHasSolutionDirectoryPath> solutionDirectoryPathSet)
+            where TContext : IWithSolutionDirectoryPath
+        {
+            return context =>
+            {
+                context.SolutionDirectoryPath = solutionDirectoryPath;
+
+                return Task.CompletedTask;
+            };
+        }
+
         /// <summary>
         /// Set the solution file path using the solution name and the solution directory path.
         /// </summary>
         public Func<TContext, Task> Set_SolutionFilePath<TContext>(
+            (IsSet<IHasSolutionName>, IsSet<IHasSolutionDirectoryPath>) propertiesRequired,
             out IsSet<IHasSolutionFilePath> solutionFilePathSet)
             where TContext : IWithSolutionFilePath, IHasSolutionName, IHasSolutionDirectoryPath
         {
             return context =>
             {
                 context.SolutionFilePath = Instances.SolutionPathsOperator.Get_SolutionFilePath(
-                context.SolutionDirectoryPath,
-                context.SolutionName);
+                    context.SolutionDirectoryPath,
+                    context.SolutionName);
+
+                return Task.CompletedTask;
+            };
+        }
+
+        public Func<TContext, Task> Set_SolutionName<TContext>(
+            string solutionName,
+            out IsSet<IHasSolutionName> solutionFilePathSet)
+            where TContext : IWithSolutionName
+        {
+            return context =>
+            {
+                context.SolutionName = solutionName;
 
                 return Task.CompletedTask;
             };
@@ -38,6 +65,7 @@ namespace R5T.L0095.O001
         /// Related: R5T.L0093.O000.IHasFilePathContextOperations.Verify_File_DoesNotExist()
         /// </remarks>
         public Func<TContext, Task> Verify_SolutionFile_DoesNotExist<TContext>(
+            IsSet<IHasSolutionFilePath> solutionFilePathRequired,
             out IChecked<IFileDoesNotExist> @checked)
             where TContext : IHasSolutionFilePath
         {
